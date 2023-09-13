@@ -1,0 +1,21 @@
+name: Install and Build
+
+on: [push, pull_request]
+    
+jobs:
+    job-one:
+        runs-on: ubuntu-latest
+  
+        steps:
+            - name:
+              run: 
+                echo "job one"
+
+    job-two:
+        if: github.event_name != 'pull_request'
+        runs-on: ubuntu-latest
+  
+        steps:
+            - name:
+              run: 
+                echo "job two"
