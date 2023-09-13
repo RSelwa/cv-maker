@@ -48,16 +48,52 @@ jobs:
               sleep 5
               curl -I http://localhost:4173
 
-      # - name: Notify
-      #   if: failure()
-      #   run: echo fail
   snapchot:
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2.4.0
+        with:
+          version: 8
+          run_install: false
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build the app
+        run: pnpm run build
+
+      - name: Launch the app
+        run: |
+              pnpm run preview &
+              sleep 5
+              curl -I http://localhost:4173
+
+      - name: Execute Snapchot fonxtion 
+        shell: bash
+        run: |
+          docker run -i --init --cap-add=SYS_ADMIN --network host -v ./gen:/home/pptruser/gen ghcr.io/puppeteer/puppeteer:latest node -e "$(cat snapshot.js)" http://localhost:4173 ./gen
+
+      - name: Move generate files
+        shell: bash
+        run: |
+          mv ./gen/cv-en.pdf ./static/
+          mv ./gen/cv.mhtml ./static/
+
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    needs: snapchot
 
     steps:
       - uses: actions/checkout@v4
