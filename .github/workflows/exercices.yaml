@@ -1,4 +1,4 @@
-name: Install and Build
+name: Exercices
 
 env:
     VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -22,9 +22,28 @@ on:
     - cron:  '30 1/3 * * *'
     - cron:  '* 3 * * 1'
 
+  workflow_dispatch:
+
     
 jobs:
   echo:
+    strategy:
+      matrix:
+        version: [12,14,16]
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{matrix.os}}
+
+    defaults:
+      run:
+        # put the steps in subfolder snapshots
+        working-directory: snapshots
+    steps:
+        - name:
+          run: 
+            echo "hello world"
+  jobTwo:
+    if: github.event_name =='push'
     runs-on: ubuntu-latest
   
     steps:
